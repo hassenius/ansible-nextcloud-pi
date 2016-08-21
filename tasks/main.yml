@@ -1,0 +1,6 @@
+---
+
+# TODO: add other platforms
+- include: "dependencies_raspberry_pi.yml"
+
+- include: "nexcloud.yml"

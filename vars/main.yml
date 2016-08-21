@@ -1,0 +1,63 @@
+---
+apt_repositories:
+    - 'deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi'
+
+basic_packages:
+    - curl
+    - vim
+    - git
+    - expect
+    - mariadb-server
+    - nginx
+    - openssl
+    - ssl-cert
+    - libapr1
+    - libtool
+    - libcurl4-openssl-dev
+    - memcached
+    - varnish
+
+php_packages:
+    - php7.0-fpm
+    - php7.0-dev
+    - php7.0-cli
+    - php7.0-apcu
+    - php7.0-intl
+    - php7.0-curl
+    - php7.0-mysql
+    - php7.0-zip
+    - php7.0-mbstring
+    - php7.0-gd
+    - php7.0-xml
+    - php7.0-json
+    - php7.0-common
+    - php7.0-mysql
+
+
+stack_packages:
+    - nginx-extras
+
+php7_cli_configuration_file: '/etc/php/7.0/cli/php.ini'
+php7_fpm_configuration_file: '/etc/php/7.0/fpm/php.ini'
+php7_fpm_pool_configuration_file: '/etc/php/7.0/fpm/pool.d/www.conf'
+php7_fpm_settings:
+    - { name: 'expose_php', value: 'Off' }
+    - { name: 'max_execution_time', value: '30' }
+    - { name: 'memory_limit', value: '128M' }
+
+php7_fpm_pool_settings:
+    - { name: 'listen', value: '127.0.0.1:9000' }
+    - { name: 'listen.backlog', value: '0' }
+    - { name: 'pm', value: 'static' }
+    - { name: 'pm.max_children', value: '100' }
+    - { name: 'pm.max_requests', value: '128' }
+    - { name: 'pm.status_path', value: '/status' }
+    - { name: 'ping.path', value: '/ping' }
+    - { name: 'request_terminate_timeout', value: '90' }
+    - { name: 'rlimit_files', value: '65535' }
+    - { name: 'rlimit_core', value: 'unlimited' }
+    - { name: 'catch_workers_output', value: 'yes' }
+
+chmod_directory:
+    - {"name": '/var/www/nextcloud/app/cache', "chmod": 0777}
+    - {"name": '/var/www/nextcloud/app/logs', "chmod": 0777}

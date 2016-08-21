@@ -1,0 +1,63 @@
+---
+
+- name: "Check if nextcloud directory already checked out"
+  stat:
+    path: "{{ nextcloud_dir }}"
+  register: stat_nexcloud_dir
+
+# TODO: use binary instead of git
+- name: "Clone latest nextcloud repository (It may take a long time)"
+  git:
+    repo: "https://github.com/nextcloud/server.git"
+    dest: "{{ nextcloud_dir }}"
+    version: "stable9"
+    force: no
+    accept_hostkey: yes
+  when: not stat_nexcloud_dir.stat.exists
+
+- name: "Ensure {{ nextcloud_dir }} is owned by {{ nextcloud_user }}"
+  file:
+    path: "{{ nextcloud_dir }}"
+    owner: "{{ nextcloud_user }}"
+    group: "{{ nextcloud_group }}"
+    recurse: yes
+
+- name: "Copy nginx virtual host configuration"
+  template:
+    src: "nextcloud.dev.conf"
+    dest: "/etc/nginx/sites-enabled"
+    force: yes
+  notify: "reload-nginx"
+
+- name: "Ensure default nginx config is removed"
+  file:
+    path: "/etc/nginx/sites-enabled/default"
+    state: absent
+  notify: "reload-nginx"
+
+- name: "Run php occ maintenance:install"
+  command: >
+    "php occ maintenance:install"
+    "--database {{ nextcloud_database }}"
+    "--database-name {{ nextcloud_database_name }}"
+    "--database-user {{ nextcloud_database_user }}"
+    "--database-pass {{ nextcloud_database_pass }}"
+    "--admin-user {{ nextcloud_admin_user }}"
+    "--admin-pass {{ nextcloud_admin_pass }}"
+  become: True
+  become_user: "{{ nextcloud_user }}"
+  args:
+    chdir: "{{ nextcloud_dir }}"
+    creates: "{{ nextcloud_dir }}/data"
+
+- name: "add trusted host"
+  lineinfile:
+    dest: "{{ nextcloud_dir }}/config/config.php"
+    line: "    1 => '{{ nextcloud_trusted_host }}',"
+    insertafter: "^    0 => 'localhost',"
+    owner: "{{ nextcloud_user }}"
+    group: "{{ nextcloud_group }}"
+  when: nextcloud_trusted_host
+
+- name: "MANUAL STEP NEEDED"
+  debug: msg="Please install contacts / tasks / calendar from http(s)://<your-server>/settings/apps?category=productivity"

@@ -1,0 +1,16 @@
+---
+
+nextcloud_trusted_host: "" # override this to add a trusted host
+
+nextcloud_dir: "/var/www/nextcloud"
+
+nextcloud_user: "www-data"
+nextcloud_group: "www-data"
+
+nextcloud_database: "mysql"
+nextcloud_database_name: "nextcloud"
+nextcloud_database_user: "root"
+nextcloud_database_pass: ""
+nextcloud_admin_user: "admin"
+nextcloud_admin_pass: "password"
+

@@ -1,0 +1,43 @@
+---
+
+- name: "Ensure dotdeb GnuPG key installed"
+  apt_key: url="https://www.dotdeb.org/dotdeb.gpg" state=present
+
+- name: "Ensure repositories added"
+  apt_repository: repo="{{ item }}" state=present update_cache=yes
+  with_items: "{{ apt_repositories }}"
+
+- name: "Ensure apt cache updated"
+  apt: update_cache=yes
+
+- name: "Ensure that some basic packages are installed"
+  apt: pkg={{ item }} state=present force=yes
+  with_items: "{{basic_packages}}"
+
+- name: "Ensure stack packages are installed"
+  apt: pkg={{ item }} state=present force=yes
+  with_items: "{{stack_packages}}"
+
+- name: "Ensure PHP packages are installed"
+  apt: pkg={{ item }} state=present force=yes
+  with_items: "{{php_packages}}"
+  register: php_packages
+
+- name: "Ensure php7.0-fpm .ini configuration parameters set correctly"
+  lineinfile: dest="{{ php7_fpm_configuration_file }}" regexp="^;?{{ item.name }} =" line="{{ item.name  }} = {{ item.value }}"
+  with_items: "{{php7_fpm_settings}}"
+  register: php_configuration_ini
+
+- name: "Ensure php7.0-fpm www-pool configuration parameters set correctly"
+  lineinfile: dest="{{ php7_fpm_pool_configuration_file }}" regexp="^;?{{ item.name }} =" line="{{ item.name  }} = {{ item.value }}"
+  with_items: "{{php7_fpm_pool_settings}}"
+  register: php_configuration_pool
+
+- name: "restart-php7.0-fpm"
+  service:
+    name: php7.0-fpm
+    state: restarted
+  when: php_packages | changed or php_configuration_ini | changed or php_configuration_pool | changed
+
+- name: "Ensure www directory created"
+  file: path="/var/www" state=directory
